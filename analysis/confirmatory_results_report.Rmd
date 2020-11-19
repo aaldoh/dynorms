@@ -1,0 +1,173 @@
+---
+title             : "Normative information and meat consumption"
+shorttitle        : "Confirmatory hypotheses"
+author: 
+  - name          : "Alaa AlDoh"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "Postal address"
+    email         : "a.aldoh@sussex.ac.uk"
+affiliation:
+  - id            : "1"
+    institution   : "University of Sussex"
+keywords          : "dynamic norm, sustainability"
+wordcount         : "X"
+documentclass     : "apa6"
+classoption       : "man"
+output            : papaja::apa6_word
+keep_tex: FALSE
+always_allow_html: true
+---
+
+```{r setup, include = FALSE}
+source("01_data_cleaning.R")
+source("02_confirmatory.R")
+# or sys.source("your-script.R", envir = knitr::knit_global())
+
+set.seed(42)
+knitr::opts_chunk$set(echo=F, warning = F, message = F)
+#options(knitr.table.format = "latex")
+```
+
+# Methods  {.tabset .tabset-pills}
+
+## Design and procedure
+
+A double blind, between-participants experimental design was employed in the study. The study was presented as a survey on attitudes toward meat consumption. All participants were directed from their recruitment platform to a Qualtrics survey. There were 3 conditions. In the experimental conditions, each participant read a normative statement depicting either a static norm or dynamic norm. In the inactive control condition, participants did not read any text and so proceeded to the dependent measures without an intervening task. 
+
+To create the norm statements, we examined various sources to estimate the change in meat consumption in the UK. National data estimates ranged between 26% and 33% across the UK (e.g. (Food and Drink Report 2018-2019, 2018; Knight, 2019; Lee & Simpson, 2016). A pilot study conducted using a sample of the study population where participants were asked to estimate either the percentage of people in the UK who make an effort to reduce their meat consumption, or percentage of people who have started to make this effort. The average estimates provided by both groups were roughly 30%. Based on this, we chose 30% as an estimate for the created normative statements, which is the same as the estimate used in Sparkman and Walton’s (2017) research.
+After participants read the statements and answered a free response question “why do you think this is?”, they completed dependent measures relating to meat consumption, followed by demographic questions.
+
+## Participants
+
+A total of `r data_desc[[1]]` participants were recruited through a survey posted on Prolific. `r data_desc[[3]]` were excluded as they are vegan/vegetarian, and `r data_desc[[4]]` were excluded for indicating that their results should not be included in the analysis. The final sample (*N* = `r data_desc[[2]]`) ranged in age `r age_desc$min_age` to `r age_desc$max_age` (*M~age~* = `r age_desc$m_age`, *SD* = `r age_desc$sd_age`). The participants were predominantly female (`r gender_freq[2]`%). The participants received £0.35 ($0.45) for successfully completing the task.
+
+## Normative statements
+
+Norm statements were based very closely on those used by Sparkman & Walton (2017).
+
+**Static norm.** In the static norm conditions, the text read: ‘Recent research has shown that 30% of people in the UK make an effort to limit their meat consumption. That means that 3 in 10 people in the UK eat less meat than they otherwise would. Why do you think this is?’
+
+**Dynamic norm.**In the dynamic norm conditions, the text read: ‘Recent research has shown that, in the last 5 years, 30% of people in the UK have now started to make an effort to limit their meat consumption. That means that, in recent years, 3 in 10 people in the UK have begun to eat less meat than they otherwise would. Why do you think this is?’
+
+## Measures
+
+**Demographic questions.** Participants answered questions relating to their demographic characteristics (e.g., age, gender, political position; see Appendix A).
+
+**Dependent measures.** We measured interest in reducing meat consumption, attitudes toward meat consumption, intentions and expectations to reduce own meat consumption. Additionally, we measured expectations about future meat consumption.
+
+_Interest._ To measure interest in reducing meat consumption, participants responded to a single item measure “How interested are you in eating less meat?” (Sparkman & Walton, 2017)
+Items measuring attitudes towards reducing meat consumption and intentions to reduce meat consumption were adapted from (Fishbein & Ajzen, 2010). 
+
+_Attitudes._ To measure attitudes, participants responded to the statement: “My attitude towards reducing my meat consumption is..." responding on the scales of 1 (extremely unfavourable) to 7 (extremely favourable), and 1 (extremely negative) to 7 (extremely positive). They also responded to the statement “reducing my meat consumption would be…” on the scale of 1 (extremely bad) to 7 (extremely good).
+
+_Intentions._ To measure intentions, participants responded to the statements: “I intend to reduce my meat consumption within the next year”, “I plan to reduce my meat consumption within the next year”, and “I will try to reduce my meat consumption within the next year”, responding on a Likert scale (1 = very strongly disagree, 4 = neither disagree nor agree, 7 = very strongly agree). 
+Expectations. To measure expectations to reduce meat consumption, two items adapted from (Warshaw & Davis, 1985): “I am going to reduce my meat consumption from now on” and “I will reduce my meat consumption from now on” were used, with responses on a Likert scale (1 = extremely unlikely, 4 = neither unlikely nor likely, 7 = extremely likely). Participants also responded to “I expect to reduce my meat consumption from now on” on the scale of 1 (extremely disagree) to 7 (extremely agree).
+
+_Estimates of future meat consumption._ To assess whether the effect of normative statements rests on the participant’s assumption that the norm will increase in the future: “In the next 5 years, I expect meat consumption in the UK to…” (1 = decrease significantly, 4 = stay the same, 7 = increase significantly). We also used Sparkman and Walton’s (2017) measure of preconformity “In the foreseeable future, to what extent do you think that many people will make an effort to eat less meat?”.
+
+**Alternative explanations.** Participants completed a series of questions to assess perceptions of the static norm, and construal of limiting meat consumption across conditions adapted from Sparkman & Walton (2017). The questions were placed to rule out alternative explanations for the effect of the norm statements. To assess perceptions of the static norm, two items were added: “What percent of people do you think make an effort to limit their meat consumption?”, and Likert scale measure “Roughly, how many people in the UK/Europe make an effort to limit their meat consumption?” on a scale of 1 (none) to 5 (a lot).
+
+To examine the construal of limiting meat consumption by condition, participants estimated the number of meatless meals eaten each week by people who limited their meat consumption. 
+Controlled variables. To control for participants’ background, participants reported their political position (1 = very left wing, 7 = very right wing), age, gender, and whether they were vegan or vegetarian.
+
+
+# Results
+
+## Overview {.tabset .tabset-pills}
+
+### Randomization check
+
+A preliminary randomization check was conducted. The check revealed no systematic differences between the three conditions in gender, age, political position, and home country (all *p*’s > .05; see).
+
+```{r rand-check,  results="asis"}
+random_check %>%
+  apa_table(escape = F, col.names = c("Item", "Dynamic", "Static", "No norm", "Significance test"),
+            caption="Randomisation check")
+```
+
+
+### Reliability and inter-correlations
+```{r, results = 'asis'}
+cortable %>%
+  kable(format = "html",col.names = c("Measure", "$M$", "$SD$", "$\\alpha$", 1:5), escape = F) %>% 
+  add_header_above(c(" " = 4, "Correlations" = 5)) %>%
+  kable_styling()
+```
+
+## Confirmatory analyses
+
+### 1.	Does making dynamic norms about reduced meat consumption in the UK salient lead to higher interest in reducing their meat consumption (compared to static norm)? 
+
+#### Effect of condition on interest in reducing meat consumption
+
+Sparkman and Walton (2017) found effects of dynamic norms on interest in reducing meat consumption ranging from *M~diff~* = 0.60 – 0.78. Thus, the rough mean difference between dynamic and static norms expected in the sample is 0.69 on a 7 point Likert scale. Thus, I modeled H1 as a half-normal with an SD of 0.69. The plausible maximum effect was set at 1.38.
+
+The mean interest for participants in the dynamic norm condition was *M* = `r printnum(interest_desc[1,3])` (*SD* = `r printnum(interest_desc[1,4])`), and the mean interest in the static norm condition was *M* = `r printnum(interest_desc[2,3])` (*SD* = `r printnum(interest_desc[2,4])`). The mean interest in the no norm condition was *M* = `r printnum(interest_desc[3,3])` (*SD* = `r printnum(interest_desc[3,4])`).
+
+```{r, results = "asis"}
+apa_table(interest_desc, caption = "Meat consumption by condition", escape = T)
+```
+
+There was no evidence one way or the other for there being a difference in interest in reducing meat consumption between the dynamic norm (*M* = `r printnum(interest_desc[1,3])`, *SD* = `r printnum(interest_desc[1,4])`) and static norm (*M* = `r printnum(interest_desc[2,3])`, *SD* = `r printnum(interest_desc[2,4])`) conditions, `r ls_interest$full_result$DYST`, *d* = `r H1.effect$DYST$d`, $B_{\text{H}(0, 0.69)}$ = `r printnum(H1.effect$DYST.Bf)`, RR[`r H1.effect$rr$RR$sd[1]`, `r H1.effect$rr$RR$sd[2]`].
+
+Participants in the no-norm control condition showed the least interest in reducing meat consumption (*M* = `r printnum(interest_desc[3,3])`, *SD* = `r printnum(interest_desc[3,4])`) and did not differ from those in the dynamic-norm condition `r ls_interest$full_result$DYNO`, *d* = `r H1.effect$DYNO$d`, or the static-norm condition `r ls_interest$full_result$STNO`, *d* = `r H1.effect$STNO$d`. There was also no difference between the dynamic-norm condition and a combination of the control and static-norm conditions `r ls_interest$full_result$DYCONT`. 
+
+```{r, results="asis"}
+apa_table(ls_interest$table, caption = "Meat consumption by condition contrasts", escape = F)
+```
+
+#### Effect of demographic variables and condition on interest
+
+Political left-wing participants were more interested than were right wing participants, `r pol.interest_out$statistic$POLITICS`, and women were more interested than were men, `r gen.interest_out$full_result`. When we controlled for these factors, the effect of the dynamic-norm condition (compared with that of the static-norm condition) on interest in eating less meat was `r demoreg.out$full_result$conditionbiStatic`. There was no interaction between condition and either political orientation or gender, *t*s < 1.35.
+
+```{r, results = "asis"}
+apa_table(demoreg.out$table, caption = "Regression coefficients of demographic variables on interest", escape = F)
+```
+
+### 2. Will participants in the dynamic norm condition be more likely (than static norm and control) to predict a future decrease in meat consumption in the UK? {.tabset .tabset-pills} 
+
+I modeled H2 using a half-normal distribution with a mean of 0 and SD of *M~diff~* = 0.40. The plausible maximum effect was set at twice the predicted effect of *M~diff~* = 0.80. A Bayes factor was calculated for each test. 
+
+#### **Measure of perception of change:** "In the next 5 years, I expect meat consumption in the UK to…"
+
+There was no main effect of dynamic norm condition on expectations about future meat consumption, `r ls_change$full_result$DYST`, *d* = `r H2change.effect$DYST$d`, $B_{\text{H}(0, 0.40)}$ = `r printnum(H2change.effect$DYST.Bf)`, RR[`r H2change.effect$rr$RR$sd[1]`, `r H2change.effect$rr$RR$sd[2]`]
+
+```{r, results = "asis"}
+apa_table(future_cons, caption = "Expectations of future meat consumption") 
+```
+
+```{r, results = "asis"}
+apa_table(ls_change$table, caption = "Perception change contrasts", escape = F)
+```
+
+#### **Measure of preconformity:** "In the foreseeable future, to what extent do you think that many people will make an effort to eat less meat?"
+
+There was no evidence one way or the other for there being a difference in anticipation that many people would make an effort to reduce their meat consumption in the future between the dynamic norm (*M* = `r printnum(preconformity[1,3])`, *SD* = `r printnum(preconformity[1,4])`) and static norm (*M* = `r printnum(preconformity[2,3])`, *SD* = `r printnum(preconformity[2,4])`) conditions, `r ls_preconformity$full_result$DYST`, *d* = `r H2preconformity.effect$DYST$d`, $B_{\text{H}(0, 0.40)}$ = `r printnum(H2preconformity.effect$DYST.Bf)`, RR[`r H2preconformity.effect$rr$RR$sd[1]`, `r H2preconformity.effect$rr$RR$sd[2]`].
+
+```{r, results = "asis"}
+apa_table(preconformity)
+```
+
+```{r, results = "asis"}
+apa_table(ls_preconformity$table, caption = "Preconformity contrasts", escape = F)
+```
+
+
+## Secondary analyses
+
+### 1. Will there be a difference in perceptions of current static norm across the dynamic and static norm conditions? 
+
+The SESOI for percentage difference is ± 5%. The SESOI for mean difference on the Likert scale is ± 0.5.
+
+```{r perceptions of static norm and INF, results = "asis"}
+TOSTtwo.sci(m1 = PERCEPTSCALE_cond[[1,3]], m2 = PERCEPTSCALE_cond[[2,3]], sd1 = PERCEPTSCALE_cond[[1,4]], sd2 = PERCEPTSCALE_cond[[2,4]], n1 = PERCEPTSCALE_cond[[1,2]], n2 = PERCEPTSCALE_cond[[2,2]], low_eqbound = -5, high_eqbound = 5, plot = F)
+```
+
+### 2. Will there be a difference in how meat consumption is construed across the dynamic and static norm conditions? 
+
+The SESOI for difference in number of meals is ± 2 meals.
+
+```{r construal of meat cons and INF, results= "asis"}
+TOSTtwo.sci(m1 = construal_cond[[1,3]], m2 = construal_cond[[2,3]], sd1 = construal_cond[[1,4]], sd2 = construal_cond[[2,4]], n1 = construal_cond[[1,2]], n2 = construal_cond[[2,2]], low_eqbound = -5, high_eqbound = 5, plot = F)
+```
