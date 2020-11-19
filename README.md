@@ -1,5 +1,6 @@
 # dynorms
 
+```
 ─ Session info ──────────────────────────────────────────────────────────────────────────────────────────────────
  setting  value                       
  version  R version 4.0.3 (2020-10-10)
@@ -10,4 +11,5 @@
  collate  en_GB.UTF-8                 
  ctype    en_GB.UTF-8                 
  tz       Europe/London               
- date     2020-11-19  
+ date     2020-11-19   
+```
