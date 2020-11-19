@@ -1,4 +1,4 @@
-# dynorms
+# Dynamic norms and sustainable eating behaviours: replication study
 
 ```
 ─ Session info ──────────────────────────────────────────────────────────────────────────────────────────────────
