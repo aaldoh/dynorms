@@ -1,4 +1,6 @@
 # Load packages ---------------------------
+## devtools::install_github("crsh/papaja")
+## devtools::install_github("debruine/bfrr")
 list.of.packages <- c("ggplot2", "Rcpp", "tm", "SnowballC", "wordcloud", "RColorBrewer", "RCurl", "XML", "papaja", "tidyverse", "haven",
                       "emmeans", "TOSTER", "psy", "corrr", "MOTE", "knitr", "kableExtra", "codebook", "psych", "rlang", "blavaan",
                       "ggpubr", "bfrr")
@@ -250,12 +252,6 @@ clean[, c("GENDER", "condition", "conditionbi", "genderbi", "agebi")] <- haven::
 # Data Overview ---------------------------
 describeBy(clean, clean$condition)
 
-# participants
-data_desc <- c(total_n = nrow(raw),
-               clean_n = nrow(clean),
-               veg_n = nrow(raw) - nrow(noveg),
-               comp_n = nrow(noveg) - nrow(clean))
-
 # age
 age_desc <- clean %>%
   summarise(min_age = min(AGE),
@@ -274,11 +270,6 @@ comb_text <- toString(clean[3:4]) %>%
   gsub('climate change | climate-change', ' climate ', .) %>%
   gsub('aware | awareness', ' awareness ', .) %>%
   gsub('red meat', ' red-meat ', .)
-
-comb_cloud <- rquery.wordcloud(comb_text, type ="text", lang = "english", min.freq = 5,
-                               excludeWords = c("reasons", "eating", "also", "meat", "people", "think", "much", "become", "due", "lot",
-                                                "less", "eat", "consumption"))
-head(comb_cloud$freqTable, 20)
 
 # Randomization check ---------------------------
 

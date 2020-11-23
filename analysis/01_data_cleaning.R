@@ -53,3 +53,9 @@ noout = subset(clean, mahalfiltered < cutoff)
 write_sav(clean, "../data/02_clean_data.sav")
 write_sav(noout, "../data/03_no_outliers.sav")
 
+data_desc <- c(total_n = nrow(raw),
+               clean_n = nrow(clean),
+               veg_n = nrow(raw) - nrow(noveg),
+               comp_n = nrow(noveg) - nrow(clean))
+
+
