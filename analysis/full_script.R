@@ -4,7 +4,7 @@
 req_packages <- c("MOTE", "MASS", "ggplot2", "Rcpp", "tm", "SnowballC", "wordcloud",
                   "RColorBrewer", "RCurl", "XML", "papaja", "tidyverse", "knitr",
                   "here", "kableExtra", "codebook", "psych", "rlang", "bfrr",
-                  "qualtRics", "emmeans", "TOSTER", "ggpubr", "psy", "blavaan")
+                  "qualtRics", "emmeans", "TOSTER", "psy", "blavaan")
 new_packages <- req_packages[!(req_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages) > 0) install.packages(new_packages)
 lapply(req_packages, require, character.only = TRUE)
@@ -113,6 +113,7 @@ bsem.plot <- function(data, column) {
                        alpha    = id2)) +
     geom_density(size = 1) +
     scale_x_continuous(limits = c(0, 2)) +
+    scale_y_continuous(limits = c(0, 9)) +
     scale_colour_manual(name = 'Posterior/Prior', values = c("black", "red"), labels = c("posterior", "prior")) +
     scale_linetype_manual(name = 'Posterior/Prior', values = c("solid", "dotted"), labels = c("posterior", "prior")) +
     scale_alpha_discrete(name = 'Posterior/Prior', range = c(.7, .3), labels = c("posterior", "prior")) +
@@ -275,6 +276,7 @@ raw <- export %>%
          attitude_mean = rowMeans(across(ATT1:ATT3), na.rm = T),
          intention_mean = rowMeans(across(INTENT1:INTENT3), na.rm = T),
          expect_mean = rowMeans(across(EXPECT1:EXPECT3), na.rm = T),
+         expintent_avg = rowMeans(across(intention_mean:expect_mean), na.rm = T),
          conditionbi = na_if(condition, "No norm"),
          genderbi = na_if(GENDER, 3),
          agebi = cut(export$AGE, c(0, median(export$AGE, na.rm = T), max(export$AGE, na.rm = T)), labels = c("younger", "older")),
@@ -289,13 +291,13 @@ raw <- cbind(raw, dummy.code(raw$condition))
 
 # excluding data quality fails
 clean <- raw %>%
-  filter(INTENT_QUALITY == 6 | DQInclude != 1) %>%
+  filter(INTENT_QUALITY == 6 & DQInclude == 1) %>%
   dplyr::select(-INTENT_QUALITY, -DQInclude)
 
 # outliers
-mcd     <- cov.mcd(clean[ , c(11, 28:30, 21:25)], quantile.used = nrow(clean[ , c(11, 28:30, 21:25)])*.75)
-mcd_mah <- mahalanobis(clean[ , c(11, 28:30, 21:25)], mcd$center,mcd$cov)
-cutoff  <- qchisq(p = 0.99, df = ncol(clean[ , c(11, 28:30, 21:25)]))
+mcd     <- cov.mcd(clean[ , c(11, 28, 31, 21:25)], quantile.used = nrow(clean[ , c(11, 28, 31, 21:25)])*.75)
+mcd_mah <- mahalanobis(clean[ , c(11, 28, 31, 21:25)], mcd$center,mcd$cov)
+cutoff  <- qchisq(p = 0.99, df = ncol(clean[ , c(11, 28, 31, 21:25)]))
 no_out  <- clean[mcd_mah <= cutoff, ]
 
 # word cloud
@@ -310,11 +312,10 @@ comb_text <- toString(clean[1:2]) %>%
 # Data Overview ---------------------------
 age_desc <- apply(clean[27], MARGIN = 2, function(x) c(min = min(x), max = max(x), avg = mean(x), sd = sd(x))) ## age
 gender_freq <- 100 * prop.table(table(clean$gender)) ## gender
-
 cron <- apply(matrix(12:20, ncol = 3), 2, function(x) printnum(cronbach(clean[x])$alpha))
-measured_vars <- clean[, c(11, 28:30, 32, 25)]
-measure.tib <- glrstab(measured_vars, mat.rows = c("Interest", "Attitude", "Intention", "Expectation", "Perception of change", "Preconformity")) %>%
-  cbind(Alpha = c("-", cron, "-", "-"), .)
+measured_vars <- clean[, c(11, 28:31, 33, 25)]
+measure.tib <- glrstab(measured_vars, mat.rows = c("Interest", "Attitude", "Intention", "Expectation", "Intent/expectation composite", "Perception of change", "Preconformity")) %>%
+  cbind(Alpha = c("-", cron, "-", "-", "-"), .)
 
 # Randomization check ---------------------------
 demobycond <- group_by(clean, condition) %>%
@@ -466,8 +467,7 @@ secondary <- group_by(clean, condition) %>%
 simple.mod <- '
 INTEREST       ~ conditionbi
 attitude_mean  ~ conditionbi
-intention_mean ~ conditionbi
-expect_mean    ~ conditionbi'
+expintent_avg  ~ conditionbi'
 
 ### Fitting models
 simpleuninf.fit <- bsem(model = simple.mod, data = clean) # uninformative
@@ -480,7 +480,7 @@ h3.out <- list(lowinf = simplelowinf.fit,
                uninf = simpleuninf.fit) %>%
   lapply(., bsem.summary)
 
-h3.table <- cbind("Parameter" = rbind("Interest", "Attitude", "Intention", "Expectation"),
+h3.table <- cbind("Parameter" = rbind("Interest", "Attitude", "Intention/Expectation"),
                   "Mean (SD)" = paste0(h3.out$uninf[, 2], " (", h3.out$uninf[, 3], ")"),
                   "95% PPI" = paste(h3.out$uninf[, 4], h3.out$uninf[, 5], sep = ", "),
                   "neff" = h3.out$uninf[, 7],
@@ -498,7 +498,7 @@ h3.table <- cbind("Parameter" = rbind("Interest", "Attitude", "Intention", "Expe
                   "Prior" = h3.out$highinf[, 8])
 
 ### Estimate bias
-h3.estimates <- lapply(h3.out, function(x) as.numeric(x[, 2][1:4]))
+h3.estimates <- lapply(h3.out, function(x) as.numeric(x[, 2][1:3]))
 h3.bias <- c(lowinf_uninf = round(100 * ((h3.estimates$lowinf - h3.estimates$uninf) / h3.estimates$uninf), 2),
              highinf_uninf = round(100 * ((h3.estimates$highinf - h3.estimates$uninf) / h3.estimates$uninf), 2))
 
@@ -510,14 +510,10 @@ posterior1.2.3 <- list(interest = bind_rows("uninformative prior"      = enframe
                                             "informative prior (low)"  = enframe(as.matrix(blavInspect(simplelowinf.fit, what = "mcmc"))[, 'bet_sign[2]']),
                                             "informative prior (high)" = enframe(as.matrix(blavInspect(simplehighinf.fit, what = "mcmc"))[, 'bet_sign[2]']),
                                             .id = "id1"),
-                       intention = bind_rows("uninformative prior"      = enframe(as.matrix(blavInspect(simpleuninf.fit, what = "mcmc"))[, 'bet_sign[3]']),
+                       intent_exp = bind_rows("uninformative prior"      = enframe(as.matrix(blavInspect(simpleuninf.fit, what = "mcmc"))[, 'bet_sign[3]']),
                                              "informative prior (low)"  = enframe(as.matrix(blavInspect(simplelowinf.fit, what = "mcmc"))[, 'bet_sign[3]']),
                                              "informative prior (high)" = enframe(as.matrix(blavInspect(simplehighinf.fit, what = "mcmc"))[, 'bet_sign[3]']),
-                                             .id = "id1"),
-                       expectation = bind_rows("uninformative prior"      = enframe(as.matrix(blavInspect(simpleuninf.fit, what = "mcmc"))[, 'bet_sign[4]']),
-                                               "informative prior (low)"  = enframe(as.matrix(blavInspect(simplelowinf.fit, what = "mcmc"))[, 'bet_sign[4]']),
-                                               "informative prior (high)" = enframe(as.matrix(blavInspect(simplehighinf.fit, what = "mcmc"))[, 'bet_sign[4]']),
-                                               .id = "id1"))
+                                             .id = "id1"))
 
 prior1.2.3 <- bind_rows("uninformative prior" = enframe(rnorm(10000, mean = 0, sd = sqrt(1 / 1e-2))),
                         "informative prior (low)" = enframe(rnorm(10000, mean = 0.5, sd = sqrt(0.2))),
@@ -526,30 +522,25 @@ prior1.2.3 <- bind_rows("uninformative prior" = enframe(rnorm(10000, mean = 0, s
 
 h3priors.posterior <- list(interest = bind_rows("posterior" = posterior1.2.3$interest, "prior" = prior1.2.3, .id = "id2"),
                            attitude = bind_rows("posterior" = posterior1.2.3$attitude, "prior" = prior1.2.3, .id = "id2"),
-                           intention = bind_rows("posterior" = posterior1.2.3$intention, "prior" = prior1.2.3, .id = "id2"),
-                           expectation = bind_rows("posterior" = posterior1.2.3$expectation, "prior" = prior1.2.3, .id = "id2"))
+                           intexp = bind_rows("posterior" = posterior1.2.3$intent_exp, "prior" = prior1.2.3, .id = "id2"))
 
 h3.plots <- lapply(seq_along(h3priors.posterior), function(x) bsem.plot(h3priors.posterior, names(h3priors.posterior)[x]))
-ggarrange(plotlist = h3.plots, common.legend = TRUE, legend = "bottom", labels = c("A", "B", "C", "D"))
 
 # H4 ---------------------------
 full.mod <- '
 INTEREST       ~ conditionbi + AGE + genderbi + POLITICS
 attitude_mean  ~ conditionbi + AGE + genderbi + POLITICS
-intention_mean ~ conditionbi + AGE + genderbi + POLITICS
-expect_mean    ~ conditionbi + AGE + genderbi + POLITICS'
+expintent_avg ~ conditionbi + AGE + genderbi + POLITICS'
 
 full_low.mod <- '
 INTEREST       ~ prior("normal(0.5,0.447)")*conditionbi + AGE + genderbi + POLITICS
 attitude_mean  ~ prior("normal(0.5,0.447)")*conditionbi + AGE + genderbi + POLITICS
-intention_mean ~ prior("normal(0.5,0.447)")*conditionbi + AGE + genderbi + POLITICS
-expect_mean    ~ prior("normal(0.5,0.447)")*conditionbi + AGE + genderbi + POLITICS'
+expintent_avg ~ prior("normal(0.5,0.447)")*conditionbi + AGE + genderbi + POLITICS'
 
 full_high.mod <- '
 INTEREST       ~ prior("normal(0.5,0.316)")*conditionbi + AGE + genderbi + POLITICS
 attitude_mean  ~ prior("normal(0.5,0.316)")*conditionbi + AGE + genderbi + POLITICS
-intention_mean ~ prior("normal(0.5,0.316)")*conditionbi + AGE + genderbi + POLITICS
-expect_mean    ~ prior("normal(0.5,0.316)")*conditionbi + AGE + genderbi + POLITICS'
+expintent_avg ~ prior("normal(0.5,0.316)")*conditionbi + AGE + genderbi + POLITICS'
 
 ### Fitting models
 full.fit <- bsem(full.mod, data = clean, target = "stan", seed = 2019) # default
@@ -563,24 +554,24 @@ h4.out <- list(lowinf = full_lowinf.fit,
   lapply(., bsem.summary)
 
 h4.table <- cbind("Parameter" = rep(c("Condition", "Age", "Gender", "Politics"), 4),
-                  "Mean (SD)" = paste0(h4.out$uninf[1:16, 2], " (", h4.out$uninf[1:16, 3], ")"),
-                  "95% PPI" = paste(h4.out$uninf[1:16, 4], h4.out$uninf[1:16, 5], sep = ", "),
-                  "neff" = h4.out$uninf[1:16, 7],
-                  "PSRF" = round(blavInspect(full.fit, "psrf"), 3) %>% .[1:16],
-                  "Prior" = h4.out$uninf[1:16, 8],
-                  "Mean (SD)" = paste0(h4.out$lowinf[1:16, 2], " (", h4.out$lowinf[1:16, 3], ")"),
-                  "95% PPI" = paste(h4.out$lowinf[1:16, 4], h4.out$lowinf[1:16, 5], sep = ", "),
-                  "neff" = h4.out$lowinf[1:16, 7],
-                  "PSRF" = round(blavInspect(full_lowinf.fit, "psrf"), 3) %>% .[1:16],
-                  "Prior" = h4.out$lowinf[1:16, 8],
-                  "Mean (SD)" = paste0(h4.out$highinf[1:16, 2], " (", h4.out$highinf[1:16, 3], ")"),
-                  "95% PPI" = paste(h4.out$highinf[1:16, 4], h4.out$highinf[1:16, 5], sep = ", "),
-                  "neff" = h4.out$highinf[1:16, 7],
-                  "PSRF" = round(blavInspect(full_highinf.fit, "psrf"), 3) %>% .[1:16],
-                  "Prior" = h4.out$highinf[1:16, 8])
+                  "Mean (SD)" = paste0(h4.out$uninf[1:12, 2], " (", h4.out$uninf[1:12, 3], ")"),
+                  "95% PPI" = paste(h4.out$uninf[1:12, 4], h4.out$uninf[1:12, 5], sep = ", "),
+                  "neff" = h4.out$uninf[1:12, 7],
+                  "PSRF" = round(blavInspect(full.fit, "psrf"), 3) %>% .[1:12],
+                  "Prior" = h4.out$uninf[1:12, 8],
+                  "Mean (SD)" = paste0(h4.out$lowinf[1:12, 2], " (", h4.out$lowinf[1:12, 3], ")"),
+                  "95% PPI" = paste(h4.out$lowinf[1:12, 4], h4.out$lowinf[1:12, 5], sep = ", "),
+                  "neff" = h4.out$lowinf[1:12, 7],
+                  "PSRF" = round(blavInspect(full_lowinf.fit, "psrf"), 3) %>% .[1:12],
+                  "Prior" = h4.out$lowinf[1:12, 8],
+                  "Mean (SD)" = paste0(h4.out$highinf[1:16, 2], " (", h4.out$highinf[1:12, 3], ")"),
+                  "95% PPI" = paste(h4.out$highinf[1:12, 4], h4.out$highinf[1:12, 5], sep = ", "),
+                  "neff" = h4.out$highinf[1:12, 7],
+                  "PSRF" = round(blavInspect(full_highinf.fit, "psrf"), 3) %>% .[1:12],
+                  "Prior" = h4.out$highinf[1:12, 8])
 
 ### Estimate bias
-h4.estimates <- lapply(h4.out, function(x) as.numeric(x[, 2][1:16]))
+h4.estimates <- lapply(h4.out, function(x) as.numeric(x[, 2][1:12]))
 h4.bias <- c(lowinf_uninf = round(100 * ((h4.estimates$lowinf - h4.estimates$uninf) / h4.estimates$uninf), 2),
              highinf_uninf = round(100 * ((h4.estimates$highinf - h4.estimates$uninf) / h4.estimates$uninf), 2))
 
@@ -596,24 +587,26 @@ h5.out <- list(uninf = interact.fit,
   lapply(., bsem.summary)
 
 ### Estimate bias
-h5.estimates <- lapply(h5.out, function(x) as.numeric(x[, 2][c(1:4, 21:24)]))
+h5.estimates <- lapply(h5.out, function(x) as.numeric(x[, 2][c(1:3, 15:17)]))
 h5.bias <- c(lowinf_uninf = round(100 * ((h5.estimates$lowinf - h5.estimates$uninf) / h5.estimates$uninf), 2),
              highinf_uninf = round(100 * ((h5.estimates$highinf - h5.estimates$uninf) / h5.estimates$uninf), 2))
 
 interact.table <- cbind("Parameter" = rep(c("Interest", "Attitude", "Intention", "Expectation"),2),
-                        "Mean (SD)" = paste0(h5.out$uninf[c(1:4,21:24), 2], " (", h5.out$uninf[c(1:4,21:24), 3], ")"),
-                        "95% PPI" = paste(h5.out$uninf[c(1:4,21:24), 4], h5.out$uninf[c(1:4,21:24), 5], sep = ", "),
-                        "neff" = h5.out$uninf[c(1:4,21:24), 7],
-                        "PSRF" = round(blavInspect(interact.fit, "psrf"), 3) %>% .[c(1:4,19:22)],
-                        "Prior" = h5.out$uninf[c(1:4,21:24), 8],
-                        "Mean (SD)" = paste0(h5.out$lowinf[c(1:4,21:24), 2], " (", h5.out$lowinf[c(1:4,21:24), 3], ")"),
-                        "95% PPI" = paste(h5.out$lowinf[c(1:4,21:24), 4], h5.out$lowinf[c(1:4,21:24), 5], sep = ", "),
-                        "neff" = h5.out$lowinf[c(1:4,21:24), 7],
-                        "PSRF" = round(blavInspect(interact_lowinf.fit, "psrf"), 3) %>% .[c(1:4,19:22)],
-                        "Prior" = h5.out$lowinf[c(1:4,21:24), 8],
-                        "Mean (SD)" = paste0(h5.out$highinf[c(1:4,21:24), 2], " (", h5.out$highinf[c(1:4,21:24), 3], ")"),
-                        "95% PPI" = paste(h5.out$highinf[c(1:4,21:24), 4], h5.out$highinf[c(1:4,21:24), 5], sep = ", "),
-                        "neff" = h5.out$highinf[c(1:4,21:24), 7],
-                        "PSRF" = round(blavInspect(interact_highinf.fit, "psrf"), 3) %>% .[c(1:4,19:22)],
-                        "Prior" = h5.out$highinf[c(1:4,21:24), 8])
+                        "Mean (SD)" = paste0(h5.out$uninf[c(1:3, 15:17), 2], " (", h5.out$uninf[c(1:3, 15:17), 3], ")"),
+                        "95% PPI" = paste(h5.out$uninf[c(1:3, 15:17), 4], h5.out$uninf[c(1:3, 15:17), 5], sep = ", "),
+                        "neff" = h5.out$uninf[c(1:3, 15:17), 7],
+                        "PSRF" = round(blavInspect(interact.fit, "psrf"), 3) %>% .[c(1:3,13:15)],
+                        "Prior" = h5.out$uninf[c(1:3, 15:17), 8],
+                        "Mean (SD)" = paste0(h5.out$lowinf[c(1:3, 15:17), 2], " (", h5.out$lowinf[c(1:3, 15:17), 3], ")"),
+                        "95% PPI" = paste(h5.out$lowinf[c(1:3, 15:17), 4], h5.out$lowinf[c(1:3, 15:17), 5], sep = ", "),
+                        "neff" = h5.out$lowinf[c(1:3, 15:17), 7],
+                        "PSRF" = round(blavInspect(interact_lowinf.fit, "psrf"), 3) %>% .[c(1:3,13:15)],
+                        "Prior" = h5.out$lowinf[c(1:3, 15:17), 8],
+                        "Mean (SD)" = paste0(h5.out$highinf[c(1:3, 15:17), 2], " (", h5.out$highinf[c(1:3, 15:17), 3], ")"),
+                        "95% PPI" = paste(h5.out$highinf[c(1:3, 15:17), 4], h5.out$highinf[c(1:3, 15:17), 5], sep = ", "),
+                        "neff" = h5.out$highinf[c(1:3, 15:17), 7],
+                        "PSRF" = round(blavInspect(interact_highinf.fit, "psrf"), 3) %>% .[c(1:3,13:15)],
+                        "Prior" = h5.out$highinf[c(1:3, 15:17), 8])
 
+save.image(file = "data/analysis_results.RData")
+write.csv(clean, file = "data/02_clean.csv")
