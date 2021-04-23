@@ -34,7 +34,10 @@ bdensity.plot <- function(data, discrete_labs) {
     theme(legend.position = "right")
 }
 
-load("data/exp_results.RData")
+load("data/blav_fit/h3_fit.RData")
+load("data/blav_fit/h4_fit.RData")
+load("data/blav_fit/h5_fit.RData")
+
 set.seed(2019)
 
 # H3 ---------------------------
@@ -53,7 +56,7 @@ h3.density <- bind_rows(lapply(h3.mcmc, function(x)
 ## traceplots
 h3.traceplots <- lapply(h3.fit, function(x) plot(x, type = "trace"))
 
-### intervals
+## intervals
 h3_intervals.plot <- bintervals.plot(h3.mcmc_intervals,
                                      color_group = h3.mcmc_intervals$Model,
                                      discrete_labs = c("bet_sign[3]" = "Interest ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[1]" = "Intent/Exp ~ Condition"))
@@ -64,7 +67,7 @@ h3_density.plot <- lapply(h3.mcmc, function(x) mcmc_areas(x, regex_pars = "^bet"
                        xlim(-0.5,0.5) +
                        theme_apa(box = TRUE))
 
-test<- bayesplot_grid(plots = h3_density.plot, subtitles = c("1. Uninformative", "2. Weakly informative", "3. Moderately informative"),
+h3_density.grid <- bayesplot_grid(plots = h3_density.plot, subtitles = c("1. Uninformative", "2. Weakly informative", "3. Moderately informative"),
                       grid_args = list(ncol = 1))
 
 # H4 ---------------------------
@@ -82,9 +85,10 @@ h4.density[[2]]$Model <- rep(c("2: Weakly informative"))
 h4.density[[3]]$Model <- rep(c("2: Moderately informative"))
 h4.density <- bind_rows(h4.density) %>% mutate(Model = as_factor(Model))
 
-## plots
+## traceplots
 h4.traceplots <- lapply(h4.fit, function(x) plot(x, type = "trace"))
 
+## intervals
 h4_intervals.plot <- bintervals.plot(h4.mcmc_intervals[h4.mcmc_intervals$Model == "1: Uninformative",],
                                      discrete_labs = c("bet_sign[1]" = "Intent/Exp ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[3]" = "Interest ~ Condition",
                                                        "bet_sign[4]" = "Interest ~ Age", "bet_sign[5]" = "Attitude ~ Age", "bet_sign[6]" = "Intent/Exp ~ Age",
@@ -94,6 +98,38 @@ h4_intervals.plot <- bintervals.plot(h4.mcmc_intervals[h4.mcmc_intervals$Model =
                                                        "bet_sign[5]", "bet_sign[6]", "bet_sign[7]", "bet_sign[8]",
                                                        "bet_sign[9]", "bet_sign[10]", "bet_sign[11]", "bet_sign[12]"))
 
+## density plots
+# h4_density.plot <- lapply(h4.mcmc, function(x) mcmc_areas(x, regex_pars = "^bet", prob = 0.8, prob_outer = 0.99, point_est = "mean") +
+#                             scale_y_discrete(labels = c("bet_sign[1]" = "Intent/Exp ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[3]" = "Interest ~ Condition",
+#                                                         "bet_sign[4]" = "Interest ~ Age", "bet_sign[5]" = "Attitude ~ Age", "bet_sign[6]" = "Intent/Exp ~ Age",
+#                                                         "bet_sign[7]" = "Interest ~ Gender", "bet_sign[8]" = "Attitude ~ Gender", "bet_sign[9]" = "Intent/Exp ~ Gender",
+#                                                         "bet_sign[10]" = "Interest ~ Politics", "bet_sign[11]" = "Attitude ~ Politics", "bet_sign[12]" = "Intent/Exp ~ Politics"),
+#                                              limits = c("bet_sign[1]", "bet_sign[2]", "bet_sign[3]", "bet_sign[4]",
+#                                                         "bet_sign[5]", "bet_sign[6]", "bet_sign[7]", "bet_sign[8]",
+#                                                         "bet_sign[9]", "bet_sign[10]", "bet_sign[11]", "bet_sign[12]")) +
+#                             xlim(-0.5,0.5) +
+#                             theme_apa(box = TRUE))
+#
+# h4_density.grid <- bayesplot_grid(plots = h4_density.plot, subtitles = c("1. Uninformative", "2. Weakly informative", "3. Moderately informative"),
+#                                   grid_args = list(ncol = 3))
+
+h4_density.plot <- mcmc_areas(h4.mcmc[[1]], regex_pars = "^bet", prob = 0.8, prob_outer = 0.99, point_est = "mean") +
+  scale_y_discrete(labels = c("bet_sign[1]" = "Intent/Exp ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[3]" = "Interest ~ Condition",
+                              "bet_sign[4]" = "Interest ~ Age", "bet_sign[5]" = "Attitude ~ Age", "bet_sign[6]" = "Intent/Exp ~ Age",
+                              "bet_sign[7]" = "Interest ~ Gender", "bet_sign[8]" = "Attitude ~ Gender", "bet_sign[9]" = "Intent/Exp ~ Gender",
+                              "bet_sign[10]" = "Interest ~ Politics", "bet_sign[11]" = "Attitude ~ Politics", "bet_sign[12]" = "Intent/Exp ~ Politics"),
+                   limits = c("bet_sign[1]", "bet_sign[2]", "bet_sign[3]", "bet_sign[4]",
+                              "bet_sign[5]", "bet_sign[6]", "bet_sign[7]", "bet_sign[8]",
+                              "bet_sign[9]", "bet_sign[10]", "bet_sign[11]", "bet_sign[12]")) +
+  xlim(-0.5,0.5) +
+  theme_apa(box = TRUE)
+
 # H5 ---------------------------
 ## Trace plots
 h5.traceplots <- lapply(h5.fit, function(x) plot(x, type = "trace"))
+
+save(h3.traceplots, h4.traceplots, h5.traceplots,
+     h3_intervals.plot, h4_intervals.plot,
+     h3_density.grid, h4_density.plot,
+     file =  "figures/exp_plots.RData")
+

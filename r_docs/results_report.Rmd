@@ -20,8 +20,9 @@ output:
 ```{r setup, include = FALSE}
 rmd_packages <- c("ggplot2", "papaja", "tidyverse", "kableExtra", "codebook", "ggpubr")
 lapply(rmd_packages, require, character.only = TRUE)
-source("01_main_analysis")
-load("../data/exp_results.RData")
+source("01_main_analysis.R")
+load(here("figures/exp_plots.RData"))
+load(here("data/exp_results.RData"))
 
 knitr::opts_chunk$set(echo=F, warning = F, message = F, results = "asis")
 ```
@@ -145,7 +146,7 @@ TOSTtwo.sci(m1 = secondary[[1,7]], m2 = secondary[[2,7]], sd1 = secondary[[1,8]]
 
 # Exploratory Analyses
 
-## 3. Does dynamic norm (versus static or no norm) information increase participants’ positive attitude, intentions, and expectations to reduce their meat consumption? {.tabset .tabset-pills} $\sigma$
+## 3. Does dynamic norm (versus static or no norm) information increase participants’ positive attitude, intentions, and expectations to reduce their meat consumption? {.tabset .tabset-pills}
 
 ### Convergence
 
@@ -170,13 +171,13 @@ h3.table %>%
 h3_intervals.plot
 ```
 
-
-```{r, fig.show='asis', fig.cap="Influence of priors on posterior regression estimates"}
-ggarrange(plotlist = h3.plots, common.legend = TRUE, legend = "right", labels = c("A", "B", "C"))
-```
-
-
 ## 4. How do demographic factors such as age, gender, and political position predict primary dependent variables relating to meat consumption? {.tabset .tabset-pills}
+
+### Convergence
+
+```{r, fig.show='asis', fig.cap="Traceplots for estimated regression parameters"}
+h4.traceplots
+```
 
 ### Estimates
 
@@ -191,13 +192,13 @@ h4.table %>%
   pack_rows("Expectations", 13, 16)
 ```
 
+## 5. How does age interact with norm condition to influence dependent variables? {.tabset .tabset-pills}
+
 ### Convergence
 
-```{r, fig.show='asis', fig.cap="Traceplots for estimated regression parameters"}
-h4.traceplots
+```{r, fig.show='asis', fig.cap="Traceplots of regression parameters"}
+h5.traceplots
 ```
-
-## 5. How does age interact with norm condition to influence dependent variables? {.tabset .tabset-pills}
 
 ### Estimates
 
@@ -208,12 +209,6 @@ interact.table %>%
   kable_styling() %>%
   pack_rows("Older", 1, 4) %>%
   pack_rows("Younger", 5, 8)
-```
-
-### Convergence
-
-```{r, fig.show='asis', fig.cap="Traceplots of regression parameters"}
-h5.traceplots
 ```
 
 # Environment and data {.tabset .tabset-pills}

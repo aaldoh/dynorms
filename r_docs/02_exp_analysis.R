@@ -151,9 +151,9 @@ interact.table <- cbind("Parameter" = rep(c("Interest", "Attitude", "Intention",
                         "Bias (%)" = h5.bias[7:12],
                         "Prior" = h5.out$highinf[c(1:3, 15:17), 8])
 
-save(h3.fit, file =  "data/blav_fit/h3.fit.RData")
-save(h4.fit, file =  "data/blav_fit/h4.fit.RData")
-save(h5.fit, file =  "data/blav_fit/h5.fit.RData")
+save(h3.fit, file =  "data/blav_fit/h3_fit.RData")
+save(h4.fit, file =  "data/blav_fit/h4_fit.RData")
+save(h5.fit, file =  "data/blav_fit/h5_fit.RData")
 
-save(h3.table, h4.table, interact.table, file =  "data/exp_results.RData")
+save(h3.global, h3.table, h4.table, interact.table, file =  "data/exp_results.RData")
 

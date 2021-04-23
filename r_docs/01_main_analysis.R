@@ -443,4 +443,4 @@ secondary <- group_by(clean, condition) %>%
 
 clean %>%
   filter(!is.na(conditionbi)) %>%
-  saveRDS(., file = "data/blavaan_data.rds")
+  saveRDS(., file = "../data/blavaan_data.rds")
