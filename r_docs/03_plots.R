@@ -1,11 +1,12 @@
 # Setup ---------------------------
+set.seed(2019)
 library(blavaan)
 library(ggplot2)
 library(bayesplot)
 library(papaja)
 library(tidyverse)
 
-bintervals.plot <- function(data, discrete_labs = NULL, discrete_lims = NULL, color_group = NULL) {
+bintervals.plot <- function(data, discrete_labs = NULL, discrete_lims = NULL, color_group = NULL, xlims = limits(c(...), "x")) {
   ggplot(data = data, aes(x = m, y = parameter, color = color_group)) +
     geom_linerange(aes(xmin = l, xmax = h), position = position_dodge(width=0.8), size=2)+
     geom_linerange(aes(xmin = ll, xmax = hh), position = position_dodge(width=0.8)) +
@@ -16,7 +17,7 @@ bintervals.plot <- function(data, discrete_labs = NULL, discrete_lims = NULL, co
     labs(x = "Parameter Value", y = "Parameter", color = "Model",
          title = "Posterior distributions", subtitle = "with means and credibility intervals") +
     scale_y_discrete(labels = discrete_labs, limits = discrete_lims) +
-    xlim(-0.5,0.5) +
+    xlim(xlims) +
     papaja::theme_apa(box = TRUE) +
     theme(legend.position = "right")
 }
@@ -38,8 +39,6 @@ load("data/blav_fit/h3_fit.RData")
 load("data/blav_fit/h4_fit.RData")
 load("data/blav_fit/h5_fit.RData")
 
-set.seed(2019)
-
 # H3 ---------------------------
 ## extracting MCMC chains and intervals
 h3.mcmc <- lapply(h3.fit, function(x) as.matrix(blavInspect(x, 'mcmc')))
@@ -57,22 +56,28 @@ h3.density <- bind_rows(lapply(h3.mcmc, function(x)
 h3.traceplots <- lapply(h3.fit, function(x) plot(x, type = "trace"))
 
 ## intervals
-h3_intervals.plot <- bintervals.plot(h3.mcmc_intervals,
+h3_intervals.plot <- bintervals.plot(h3.mcmc_intervals, xlims = c(-0.5,0.5),
                                      color_group = h3.mcmc_intervals$Model,
                                      discrete_labs = c("bet_sign[3]" = "Interest ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[1]" = "Intent/Exp ~ Condition"))
 
 ## density plots
 h3_density.plot <- lapply(h3.mcmc, function(x) mcmc_areas(x, regex_pars = "^bet", prob = 0.8, prob_outer = 0.99, point_est = "mean") +
-                       scale_y_discrete(labels = c("bet_sign[3]" = "Interest", "bet_sign[2]" = "Attitude", "bet_sign[1]" = "Intent/Exp")) +
-                       xlim(-0.5,0.5) +
-                       theme_apa(box = TRUE))
+                            scale_y_discrete(labels = c("bet_sign[3]" = "Interest", "bet_sign[2]" = "Attitude", "bet_sign[1]" = "Intent/Exp")) +
+                            xlim(-0.5,0.5) +
+                            theme_apa(box = TRUE))
 
 h3_density.grid <- bayesplot_grid(plots = h3_density.plot, subtitles = c("1. Uninformative", "2. Weakly informative", "3. Moderately informative"),
                       grid_args = list(ncol = 1))
 
 # H4 ---------------------------
 ## extracting MCMC chains and intervals
-h4.mcmc <- lapply(h4.fit, function(x) as.matrix(blavInspect(x, 'mcmc')))
+h4.mcmc <- lapply(h4.fit, function(x) as.matrix(blavInspect(x, 'mcmc'))) %>%
+  set_names(c("model_1", "model_2", "model_3"))
+h4.mcmc_uninf<- cbind(h4.mcmc[[1]], Model = rep(c("1: Uninformative")))
+h4.mcmc_weak <- cbind(h4.mcmc[[2]], Model = rep(c("2: Weakly informative")))
+h4.mcmc_mod <- cbind(h4.mcmc[[3]], Model = rep(c("3: Moderately informative")))
+h4.mcmc_comb <- rbind(h4.mcmc_uninf, h4.mcmc_weak, h4.mcmc_mod) %>%
+  .[,grep("^bet", colnames(.))]
 
 h4.mcmc_intervals <- bind_rows(lapply(h4.mcmc, function(x)
   mcmc_intervals_data(x, regex_pars = "^bet", point_est = "mean", prob = 0.8, prob_outer = 0.95))) %>%
@@ -80,16 +85,13 @@ h4.mcmc_intervals <- bind_rows(lapply(h4.mcmc, function(x)
 
 h4.density <- lapply(h4.mcmc, function(x)
   mcmc_areas_data(x, regex_pars = "^bet", prob = 0.8, prob_outer = 0.99, point_est = "mean"))
-h4.density[[1]]$Model <- rep(c("1: Uninformative"))
-h4.density[[2]]$Model <- rep(c("2: Weakly informative"))
-h4.density[[3]]$Model <- rep(c("2: Moderately informative"))
-h4.density <- bind_rows(h4.density) %>% mutate(Model = as_factor(Model))
 
 ## traceplots
 h4.traceplots <- lapply(h4.fit, function(x) plot(x, type = "trace"))
 
 ## intervals
 h4_intervals.plot <- bintervals.plot(h4.mcmc_intervals[h4.mcmc_intervals$Model == "1: Uninformative",],
+                                     xlims = c(-1.5,1.5),
                                      discrete_labs = c("bet_sign[1]" = "Intent/Exp ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[3]" = "Interest ~ Condition",
                                                        "bet_sign[4]" = "Interest ~ Age", "bet_sign[5]" = "Attitude ~ Age", "bet_sign[6]" = "Intent/Exp ~ Age",
                                                        "bet_sign[7]" = "Interest ~ Gender", "bet_sign[8]" = "Attitude ~ Gender", "bet_sign[9]" = "Intent/Exp ~ Gender",
@@ -99,20 +101,6 @@ h4_intervals.plot <- bintervals.plot(h4.mcmc_intervals[h4.mcmc_intervals$Model =
                                                        "bet_sign[9]", "bet_sign[10]", "bet_sign[11]", "bet_sign[12]"))
 
 ## density plots
-# h4_density.plot <- lapply(h4.mcmc, function(x) mcmc_areas(x, regex_pars = "^bet", prob = 0.8, prob_outer = 0.99, point_est = "mean") +
-#                             scale_y_discrete(labels = c("bet_sign[1]" = "Intent/Exp ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[3]" = "Interest ~ Condition",
-#                                                         "bet_sign[4]" = "Interest ~ Age", "bet_sign[5]" = "Attitude ~ Age", "bet_sign[6]" = "Intent/Exp ~ Age",
-#                                                         "bet_sign[7]" = "Interest ~ Gender", "bet_sign[8]" = "Attitude ~ Gender", "bet_sign[9]" = "Intent/Exp ~ Gender",
-#                                                         "bet_sign[10]" = "Interest ~ Politics", "bet_sign[11]" = "Attitude ~ Politics", "bet_sign[12]" = "Intent/Exp ~ Politics"),
-#                                              limits = c("bet_sign[1]", "bet_sign[2]", "bet_sign[3]", "bet_sign[4]",
-#                                                         "bet_sign[5]", "bet_sign[6]", "bet_sign[7]", "bet_sign[8]",
-#                                                         "bet_sign[9]", "bet_sign[10]", "bet_sign[11]", "bet_sign[12]")) +
-#                             xlim(-0.5,0.5) +
-#                             theme_apa(box = TRUE))
-#
-# h4_density.grid <- bayesplot_grid(plots = h4_density.plot, subtitles = c("1. Uninformative", "2. Weakly informative", "3. Moderately informative"),
-#                                   grid_args = list(ncol = 3))
-
 h4_density.plot <- mcmc_areas(h4.mcmc[[1]], regex_pars = "^bet", prob = 0.8, prob_outer = 0.99, point_est = "mean") +
   scale_y_discrete(labels = c("bet_sign[1]" = "Intent/Exp ~ Condition", "bet_sign[2]" = "Attitude ~ Condition", "bet_sign[3]" = "Interest ~ Condition",
                               "bet_sign[4]" = "Interest ~ Age", "bet_sign[5]" = "Attitude ~ Age", "bet_sign[6]" = "Intent/Exp ~ Age",
