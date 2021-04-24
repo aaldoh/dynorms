@@ -82,6 +82,8 @@ full.fit <- bsem(full.mod, data = blavaan_data, target = "stan", seed = 2019) # 
 full_lowinf.fit <- bsem(model = full_low.mod, data = blavaan_data, target = "stan", seed = 2019) # informative
 full_highinf.fit <- bsem(model = full_high.mod, data = blavaan_data, target = "stan", seed = 2019) # informative
 h4.fit <- list(full.fit, full_lowinf.fit, full_highinf.fit)
+h4.global <- lapply(h4.fit, fitmeasures)
+
 
 ### Summary outputs
 h4.out <- list(lowinf = full_lowinf.fit,
@@ -120,6 +122,7 @@ interact.fit <- bsem(simple.mod, data = blavaan_data, target = "stan", group = "
 interact_lowinf.fit <- bsem(model = simple.mod, data = blavaan_data, target = "stan", group = "agebi", seed = 2019, dp = dpriors(beta = "normal(0.5,0.75)")) # informative
 interact_highinf.fit <- bsem(model = simple.mod, data = blavaan_data, target = "stan", group = "agebi", seed = 2019, dp = dpriors(beta = "normal(0.5,0.35)")) # highly informative
 h5.fit <- list(interact.fit, interact_lowinf.fit, interact_highinf.fit)
+h5.global <- lapply(h5.fit, fitmeasures)
 
 ### Summary outputs
 h5.out <- list(uninf = interact.fit,
@@ -155,5 +158,5 @@ save(h3.fit, file =  "data/blav_fit/h3_fit.RData")
 save(h4.fit, file =  "data/blav_fit/h4_fit.RData")
 save(h5.fit, file =  "data/blav_fit/h5_fit.RData")
 
-save(h3.global, h3.table, h4.table, interact.table, file =  "data/exp_results.RData")
+save(h3.global, h4.global, h5.global, h3.table, h4.table, interact.table, file =  "data/exp_results.RData")
 
