@@ -23,15 +23,24 @@ lapply(rmd_packages, require, character.only = TRUE)
 source("01_main_analysis.R")
 load(here("figures/exp_plots.RData"))
 load(here("data/exp_results.RData"))
+load(here("data/unregistered.RData"))
 
 knitr::opts_chunk$set(echo=F, warning = F, message = F, results = "asis", fig.path = "../figures/")
 ```
 
 # Overview {.tabset .tabset-pills}
 
+## Data inspection
+
+```{r histograms}
+hist(clean$AGE)
+hist(clean$POLITICS)
+```
+
+
 ## Participants
 
-A total of `r nrow(export)` participants were recruited through a survey posted on Prolific. `r sum(is.na(export$DQInclude))` were excluded as they did not complete the survey, and  `r table(export$VEG)[1]` were excluded as they are vegan/vegetarian,  and `r table(raw$DQInclude)[2]` were excluded for indicating that their results should not be included in the analysis. `r sum(raw$INTENT_QUALITY != 6 & raw$DQInclude == 1)` were excluded for failing to select the correct response in an attention check. The final sample (*N* = `r nrow(clean)`) ranged in age `r age_desc[1]` to `r age_desc[2]` (*M~age~* = `r papaja::printnum(age_desc[3])`, *SD* = `r papaja::printnum(age_desc[4])`). The participants were predominantly female (`r papaja::printnum(gender_freq[2])`%). The participants received £0.35 ($0.45) for successfully completing the task.
+A total of `r nrow(export)` participants were recruited through a survey posted on Prolific. `r sum(is.na(export$DQInclude))` were excluded as they did not complete the survey, and  `r table(export$VEG)[1]` were excluded as they are vegan/vegetarian,  and `r table(raw$DQInclude)[2]` were excluded for indicating that their results should not be included in the analysis. `r sum(raw$INTENT_QUALITY != 6 & raw$DQInclude == 1)` were excluded for failing to select the correct response in an attention check. The final sample (*N* = `r nrow(clean)`) ranged in age `r age_desc[1]` to `r age_desc[2]` (*Mdn~age~* = `r papaja::printnum(median(clean$AGE))`, *M~age~* = `r papaja::printnum(age_desc[3])`, *SD* = `r papaja::printnum(age_desc[4])`). The participants were predominantly female (`r papaja::printnum(gender_freq[2])`%). The participants received £0.35 ($0.45) for successfully completing the task.
 
 ## Randomization check
 
@@ -54,9 +63,7 @@ kable(measure.tib, caption = "Means, Standard Deviations, Reliabilities, and Int
 
 # Confirmatory analyses
 
-## 1.	Does making dynamic norms about reduced meat consumption in the UK salient lead to higher interest in reducing their meat consumption (compared to static norm)? 
-
-### Effect of condition on interest in reducing meat consumption
+## Does making dynamic norms about reduced meat consumption in the UK salient lead to higher interest in reducing meat consumption (compared to static norm salience)? 
 
 Sparkman and Walton (2017) found effects of dynamic norms on interest in reducing meat consumption ranging from *M~diff~* = 0.60 – 0.78. Thus, the rough mean difference between dynamic and static norms expected in the sample is 0.69 on a 7 point Likert scale. Thus, I modeled H1 as a half-normal with an SD of 0.69. The plausible maximum effect was set at 1.38.
 
@@ -65,7 +72,7 @@ comb_cloud <- rquery.wordcloud(comb_text, type ="text", lang = "english", min.fr
 ```
 
 ```{r wordcloud-table}
-cloud_freq <- head(comb_cloud$freqTable, 20)
+cloud_freq <- head(comb_cloud$freqTable, 10)
 apa_table(cloud_freq, caption = "Most frequent words in text", escape = F, row.names = F)
 ```
 
@@ -79,16 +86,7 @@ Participants in the no-norm control condition showed the least interest in reduc
 apa_table(ls_interest$table, caption = "Meat consumption by condition contrasts", escape = F)
 ```
 
-
-### Effect of demographic variables and condition on interest
-
-Political left-wing participants were more interested than were right wing participants, `r pol.interest_out$statistic$POLITICS`, and women were more interested than were men, `r gen.interest_out$full_result`. When we controlled for these factors, the effect of the dynamic-norm condition (compared with that of the static-norm condition) on interest in eating less meat was `r demoreg.out$full_result$conditionbiStatic`. 
-
-```{r h1-fullreg, results='markup'}
-apa_table(demoreg.out$table, caption = "Regression coefficients of demographic variables on interest", escape = F)
-```
-
-## 2. Will participants in the dynamic norm condition be more likely (than static norm and control) to predict a future decrease in meat consumption in the UK? {.tabset .tabset-pills} 
+## Will participants in the dynamic norm condition be more likely (than those in the static norm control) to predict a future decrease in meat consumption in the UK?  {.tabset .tabset-pills} 
 
 I modeled H2 using a half-normal distribution with a mean of 0 and SD of *M~diff~* = 0.40. The plausible maximum effect was set at twice the predicted effect of *M~diff~* = 0.80. A Bayes factor was calculated for each test. 
 
@@ -127,7 +125,7 @@ kable(ls_comb_future$table, caption = "Combined contrasts", escape = F) %>%
 
 # Secondary analyses
 
-## 1. Will there be a difference in perceptions of current static norm across the dynamic and static norm conditions? 
+## Will there be a difference in perceptions of current static norm across the dynamic and static norm conditions? 
 
 The SESOI for percentage difference is ± 5%. The SESOI for mean difference on the Likert scale is ± 0.5.
 
@@ -135,7 +133,7 @@ The SESOI for percentage difference is ± 5%. The SESOI for mean difference on t
 TOSTtwo.sci(m1 = secondary[[1,4]], m2 = secondary[[2,4]], sd1 = secondary[[1,6]], sd2 = secondary[[2,6]], n1 = secondary[[1,2]], n2 = secondary[[2,2]], low_eqbound = -5, high_eqbound = 5, plot = F)
 ```
 
-### 2. Will there be a difference in how meat consumption is construed across the dynamic and static norm conditions? 
+## Will there be a difference in how meat consumption is construed across the dynamic and static norm conditions? 
 
 The SESOI for difference in number of meals is ± 2 meals.
 
@@ -144,9 +142,9 @@ TOSTtwo.sci(m1 = secondary[[1,7]], m2 = secondary[[2,7]], sd1 = secondary[[1,8]]
 ```
 
 
-# Exploratory Analyses
+# Exploratory analyses
 
-## 3. Does dynamic norm (versus static or no norm) information increase participants’ positive attitude, intentions, and expectations to reduce their meat consumption? {.tabset .tabset-pills}
+## Does dynamic norm (versus static norm) information lead to more positive attitudes, intentions, and expectations to reduce meat consumption? {.tabset .tabset-pills}
 
 ### Trace plots
 
@@ -181,11 +179,11 @@ h3.table %>%
   landscape()
 ```
 
-## 4. How do demographic factors such as age, gender, and political position predict primary dependent variables relating to meat consumption? {.tabset .tabset-pills}
+## Does age interact with norm condition to influence dependent variables? {.tabset .tabset-pills}
 
 ### Trace plots
 
-```{r h4-trace, fig.show='asis', fig.cap="Traceplots for estimated regression parameters"}
+```{r h4-trace, fig.show='asis', fig.cap="Traceplots of regression parameters"}
 h4.traceplots[[1]] + ggtitle("Uninformative")
 h4.traceplots[[2]] + ggtitle("Weak prior")
 h4.traceplots[[1]] + ggtitle("Moderate prior")
@@ -197,40 +195,6 @@ h4.traceplots[[1]] + ggtitle("Moderate prior")
 h4_intervals.plot
 ```
 
-```{r h4-density, fig.show='asis', fig.cap="Posterior density plot"}
-h4_density.plot
-```
-
-### Summary table
-
-```{r full-table}
-h4.table %>% 
-  kable(format = "html", caption = "Posterior results for full model (H4)", row.names = F, escape = F) %>%
-  kable_styling() %>%
-  add_header_above(c(" " = 1, "Model 1: Uninformative priors$^a$" = 5, "Model 2: Informative priors$^b$" = 6, "Model 3: Informative priors$^c$" = 6)) %>%
-  pack_rows("Interest", 1, 4) %>%
-  pack_rows("Attitudes", 5, 8) %>%
-  pack_rows("Intentions", 9, 12) %>%
-  pack_rows("Expectations", 13, 16) %>%
-  footnote(general_title = "Note.",
-           general = "PPI = posterior probability interval; PSRF = potential scale reduction factor; neff = effective sample size",
-           alphabet = c(paste0("ppp = ", printp(h4.global[[1]][["ppp"]])), 
-                        paste0("ppp = ", printp(h4.global[[2]][["ppp"]])), 
-                        paste0("ppp = ", printp(h4.global[[3]][["ppp"]]))), footnote_as_chunk = T) %>%
-  landscape()
-```
-
-
-## 5. How does age interact with norm condition to influence dependent variables? {.tabset .tabset-pills}
-
-### Trace plots
-
-```{r h5-trace, fig.show='asis', fig.cap="Traceplots of regression parameters"}
-h5.traceplots[[1]] + ggtitle("Uninformative")
-h5.traceplots[[2]] + ggtitle("Weak prior")
-h5.traceplots[[1]] + ggtitle("Moderate prior")
-```
-
 ### Summary table
 
 ```{r interaction-table}
@@ -238,25 +202,99 @@ interact.table %>%
   kable(format = "html", caption = "Posterior results for multi-sample analysis by age (H4)", row.names = F, escape = F) %>%
   add_header_above(c(" " = 1, "Model 1: Uninformative priors$^a$" = 5, "Model 2: Informative priors$^b$" = 6, "Model 3: Informative priors$^c$" = 6)) %>%  
   kable_styling() %>%
-  pack_rows("Older", 1, 4) %>%
-  pack_rows("Younger", 5, 8) %>%
+  pack_rows("Young adults", 1, 3) %>%
+  pack_rows("Middle-aged adults", 4, 6) %>%
+  pack_rows("Old adults", 7, 9) %>%
   footnote(general_title = "Note.",
            general = "PPI = posterior probability interval; PSRF = potential scale reduction factor; neff = effective sample size",
-           alphabet = c(paste0("ppp = ", printp(h5.global[[1]][["ppp"]])), 
-                        paste0("ppp = ", printp(h5.global[[2]][["ppp"]])), 
-                        paste0("ppp = ", printp(h5.global[[3]][["ppp"]]))),
+           alphabet = c(paste0("ppp = ", printp(h4.global[[1]][["ppp"]])), 
+                        paste0("ppp = ", printp(h4.global[[2]][["ppp"]])), 
+                        paste0("ppp = ", printp(h4.global[[3]][["ppp"]]))),
            footnote_as_chunk = T) %>%
   landscape()
 ```
 
+## Do demographic factors such as age, gender, and political position predict the primary dependent variables? {.tabset .tabset-pills}
+
+### Trace plots
+
+```{r h5-trace, fig.show='asis', fig.cap="Traceplots for estimated regression parameters"}
+h5.traceplots[[1]] + ggtitle("Uninformative")
+h5.traceplots[[2]] + ggtitle("Weak prior")
+h5.traceplots[[1]] + ggtitle("Moderate prior")
+```
+
+### Posterior plots
+
+```{r h5-intervals, fig.show='asis', fig.cap="Posterior uncertainty intervals"}
+h5_intervals.plot
+```
+
+```{r h5-density, fig.show='asis', fig.cap="Posterior density plot"}
+h5_density.plot
+```
+
+### Summary table
+
+```{r full-table}
+h5.table %>% 
+  kable(format = "html", caption = "Posterior results for full model (H5)", row.names = F, escape = F) %>%
+  kable_styling() %>%
+  add_header_above(c(" " = 1, "Model 1: Uninformative priors$^a$" = 5, "Model 2: Informative priors$^b$" = 6, "Model 3: Informative priors$^c$" = 6)) %>%
+  pack_rows("Interest", 1, 4) %>%
+  pack_rows("Attitudes", 5, 8) %>%
+  pack_rows("Intention/Expectations", 9, 12) %>%
+  footnote(general_title = "Note.",
+           general = "PPI = posterior probability interval; PSRF = potential scale reduction factor; neff = effective sample size",
+           alphabet = c(paste0("ppp = ", printp(h5.global[[1]][["ppp"]])), 
+                        paste0("ppp = ", printp(h5.global[[2]][["ppp"]])), 
+                        paste0("ppp = ", printp(h5.global[[3]][["ppp"]]))), footnote_as_chunk = T) %>%
+  landscape()
+```
+
+
+
+# Unregistered analyses {.tabset .tabset-pills}
+
+## Power test
+
+Sparkman and Walton (2017) found standardized effects of dynamic norms on interest in reducing meat consumption ranging from $d$ = 0.31 – 0.41. To detect the average effect of $d$ = 0.36, we would need 122 participants in each condition.
+
+```{r power-test}
+h1.pwr
+```
+
+
+## Moderation of demographic variables
+
+```{r moderation-attit}
+apa_table(attitude_mod.out$table, caption = "Exploring the effect  moderation of demographic variables on attitudes", escape = F)
+```
+
+```{r moderation-intent}
+apa_table(intent_mod.out$table, caption = "Exploring the effect  moderation of demographic variables on intention", escape = F)
+```
+
+```{r h1-fullreg, results='markup'}
+apa_table(demoreg.out$table, caption = "Exploring the effect  moderation of demographic variables on interest", escape = F)
+```
+
+
+## Mediation
+
+```{r mediation}
+kable(med.table, escape = F, col.names = c("Parameter", "$M$", "$SD$", "Lower PPI", "Upper PPI", "Rhat", "Prior"), caption="Exploring mediating effect of attitude on intentions/expectations") %>%
+  kable_styling()
+```
+
 # Environment and data
 
-### Session information
+## Session information
 ```{r session-info, results='markup'}
 devtools::session_info()
 ```
 
-### Codebook
+## Codebook
 ```{r codebook}
 codebook::compact_codebook(clean) 
 ```

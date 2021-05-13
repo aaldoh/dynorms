@@ -253,21 +253,20 @@ raw <- export %>%
          across(c(where(is.character), UKNATION, RESIDENT,VEG, GENDER, DQInclude, -DYUK, -STUK), as_factor),
          condition = ifelse(!is.na(DYUK), 1, ifelse(!is.na(STUK), 2, ifelse(is.na(c(DYUK, STUK)), 3, NA))) %>%
            factor(., labels = c("Dynamic", "Static", "No norm")),
+         GENDER = factor(GENDER, labels = c("Male", "Female", "Other")),
          attitude_mean = rowMeans(across(ATT1:ATT3), na.rm = T),
          intention_mean = rowMeans(across(INTENT1:INTENT3), na.rm = T),
          expect_mean = rowMeans(across(EXPECT1:EXPECT3), na.rm = T),
          expintent_avg = rowMeans(across(intention_mean:expect_mean), na.rm = T),
          conditionbi = na_if(condition, "No norm"),
-         genderbi = na_if(GENDER, 3),
-         agebi = cut(export$AGE, c(0, median(export$AGE, na.rm = T), max(export$AGE, na.rm = T)), labels = c("younger", "older")),
+         genderbi = na_if(GENDER, "Other"),
+         age_cat = cut(export$AGE, breaks=c(17, 25, 45, Inf), labels=c("Young adults","Middle-aged adults","Old adults")),
          age_cent = AGE - mean(AGE, na.rm = TRUE),
          PERCEPTCHANGE_r = 8 - PERCEPTCHANGE,
          comb_future = rowMeans(across(c("PERCEPTCHANGE_r", "PRECONFORMITY")), na.rm = T)) %>%
   droplevels() %>%
   filter(VEG == 2, !is.na(DQInclude)) %>%
   dplyr::select(where(is.character), where(is.factor), where(is.numeric), -VEG)
-
-raw <- cbind(raw, dummy.code(raw$condition))
 
 # excluding data quality fails
 clean <- raw %>%
@@ -291,7 +290,7 @@ comb_text <- toString(clean[1:2]) %>%
 
 # Data Overview ---------------------------
 age_desc <- apply(clean[27], MARGIN = 2, function(x) c(min = min(x), max = max(x), avg = mean(x), sd = sd(x))) ## age
-gender_freq <- 100 * prop.table(table(clean$gender)) ## gender
+gender_freq <- 100 * prop.table(table(clean$GENDER)) ## gender
 cron <- apply(matrix(12:20, ncol = 3), 2, function(x) printnum(cronbach(clean[x])$alpha))
 measured_vars <- clean[, c(11, 28:31, 33, 25)]
 measure.tib <- glrstab(measured_vars, mat.rows = c("Interest", "Attitude", "Intention", "Expectation", "Intent/expectation composite", "Perception of change", "Preconformity")) %>%
@@ -441,6 +440,13 @@ secondary <- group_by(clean, condition) %>%
                    list(mean = mean, sd = sd),
                    .names = "{.fn}_{.col}"), .groups = "rowwise")
 
+percept_desc <- clean %>%
+  filter(!is.na(condition)) %>%
+  mutate(PERCEPTCHANGE = factor(PERCEPTCHANGE)) %>%
+  group_by(condition, PERCEPTCHANGE) %>%
+  summarise(n=n()) %>%
+  mutate(rel.freq = paste0(round(100 * n/sum(n), 0), "%"))
+
 clean %>%
   filter(!is.na(conditionbi)) %>%
-  saveRDS(., file = "../data/blavaan_data.rds")
+  saveRDS(., file = "../data/blav_data.rds")
