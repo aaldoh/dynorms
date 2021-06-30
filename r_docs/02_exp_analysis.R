@@ -106,6 +106,23 @@ interact.table <- cbind("Parameter" = rep(c("Interest", "Attitude", "Intention/E
                         "Bias (%)" = h4.bias[10:18],
                         "Prior" = h4.out$highinf[c(1:3, 15:17, 29:31), 8])
 
+### Continuous moderator
+blav_data <- blav_data %>%
+  mutate(conditionnum = as.numeric(conditionbi) %>%
+           recode(`2` = 0))
+
+blav_data$condition_age <- blav_data$conditionnum*blav_data$age_cent
+
+interact.mod <- '
+INTEREST       ~ conditionbi + age_cent + condition_age
+attitude_mean  ~ conditionbi + age_cent + condition_age
+expintent_avg  ~ conditionbi + age_cent + condition_age'
+
+continuous_mod.fit <- bsem(model = interact.mod, data = blav_data, seed = 2019) # uninformative
+continuous_mod.out <- bsem.summary(continuous_mod.fit) %>%
+  trimws() %>%
+  .[1:9,]
+
 # H5 ---------------------------
 full.mod <- '
 INTEREST       ~ conditionbi + age_cent + genderbi + POLITICS
@@ -166,4 +183,4 @@ save(h3.fit, file =  "data/blav_fit/h3_fit.RData")
 save(h4.fit, file =  "data/blav_fit/h4_fit.RData")
 save(h5.fit, file =  "data/blav_fit/h5_fit.RData")
 
-save(h3.global, h4.global, h5.global, h3.table, h5.table, interact.table, file =  "data/exp_results.RData")
+save(h3.global, h4.global, h5.global, h3.table, h5.table, interact.table, continuous_mod.out, file =  "data/exp_results.RData")

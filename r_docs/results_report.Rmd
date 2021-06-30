@@ -214,6 +214,16 @@ interact.table %>%
   landscape()
 ```
 
+```{r interactioncont-table}
+continuous_mod.out %>% 
+  kable(caption = "Posterior results for moderation model using age as continuous variable (H4)", row.names = F, escape = F) %>%
+  kable_styling() %>%
+  pack_rows("Interest", 1, 3) %>%
+  pack_rows("Attitudes", 4, 6) %>%
+  pack_rows("Intentions/Expectations", 7, 9) 
+```
+
+
 ## Do demographic factors such as age, gender, and political position predict the primary dependent variables? {.tabset .tabset-pills}
 
 ### Trace plots
