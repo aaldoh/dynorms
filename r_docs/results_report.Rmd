@@ -16,6 +16,12 @@ output:
     number_sections: yes
     fig_caption: yes
 ---
+<style type="text/css">
+  body{
+  font-family: Times New Roman;
+  font-size: 12pt;
+}
+</style>
 
 ```{r setup-chunk, include = FALSE}
 rmd_packages <- c("ggplot2", "papaja", "tidyverse", "kableExtra", "codebook", "ggpubr")
@@ -26,17 +32,17 @@ load(here("data/exp_results.RData"))
 load(here("data/unregistered.RData"))
 
 knitr::opts_chunk$set(echo=F, warning = F, message = F, results = "asis", fig.path = "../figures/")
+options(knitr.kable.NA = '')
 ```
 
 # Overview {.tabset .tabset-pills}
 
 ## Data inspection
 
-```{r histograms}
-hist(clean$AGE)
-hist(clean$POLITICS)
+```{r histograms, out.width="50%"}
+hist(clean$AGE, main="Distribution of Age", xlab ="Age")
+hist(clean$POLITICS, main="Distribution of Political Position", xlab = "Political Position")
 ```
-
 
 ## Participants
 
@@ -60,12 +66,29 @@ kable(measure.tib, caption = "Means, Standard Deviations, Reliabilities, and Int
   kable_styling()
 ```
 
+***
 
 # Confirmatory analyses
 
-## Does making dynamic norms about reduced meat consumption in the UK salient lead to higher interest in reducing meat consumption (compared to static norm salience)? 
+## Does making dynamic norms about reduced meat consumption in the UK salient lead to higher interest in reducing meat consumption (compared to static norm salience)? {.tabset .tabset-fade .tabset-pills}
+
+### Prior
 
 Sparkman and Walton (2017) found effects of dynamic norms on interest in reducing meat consumption ranging from *M~diff~* = 0.60 – 0.78. Thus, the rough mean difference between dynamic and static norms expected in the sample is 0.69 on a 7 point Likert scale. Thus, I modeled H1 as a half-normal with an SD of 0.69. The plausible maximum effect was set at 1.38.
+
+### Results
+
+The mean interest for participants in the dynamic norm condition was *M* = `r papaja::printnum(outcomes_desc[[1,3]])` (*SD* = `r papaja::printnum(outcomes_desc[[1,4]])`), and the mean interest in the static norm condition was *M* = `r papaja::printnum(outcomes_desc[[2,3]])` (*SD* = `r papaja::printnum(outcomes_desc[[2,4]])`). The mean interest in the no norm condition was *M* = `r papaja::printnum(outcomes_desc[[3,3]])` (*SD* = `r papaja::printnum(outcomes_desc[[3,4]])`).
+
+There was no difference in interest in reducing meat consumption between the dynamic norm (*M* = `r papaja::printnum(outcomes_desc[[1,3]])`, *SD* = `r papaja::printnum(outcomes_desc[[1,4]])`) and static norm (*M* = `r papaja::printnum(outcomes_desc[[2,3]])`, *SD* = `r papaja::printnum(outcomes_desc[[2,4]])`) conditions, `r ls_interest$full_result$DYST`, *d* = `r H1.effect$DYST$d`, $B_{\text{HN}(0, 0.69)}$ = `r papaja::printnum(H1.effect$DYST.Bf)`, RR[`r H1.effect$rr$RR$sd[1]`, `r H1.effect$rr$RR$sd[2]`].
+
+Participants in the no-norm control condition showed the least interest in reducing meat consumption (*M* = `r papaja::printnum(outcomes_desc[[3,3]])`, *SD* = `r papaja::printnum(outcomes_desc[[3,4]])`) and did not differ from those in the dynamic-norm condition `r ls_interest$full_result$DYNO`, *d* = `r H1.effect$DYNO$d`, or the static-norm condition `r ls_interest$full_result$STNO`, *d* = `r H1.effect$STNO$d`. There was also no difference between the dynamic-norm condition and a combination of the control and static-norm conditions `r ls_interest$full_result$DYCONT`. 
+
+```{r h1-table, results='markup'}
+apa_table(ls_interest$table, caption = "Meat consumption by condition contrasts", escape = F, row.names = F)
+```
+
+### Wordcloud
 
 ```{r wordcloud-fig, fig.show='asis', fig.cap="World cloud of participants response to text"}
 comb_cloud <- rquery.wordcloud(comb_text, type ="text", lang = "english", min.freq = 5, excludeWords = c("reasons", "eating", "also", "meat", "people", "think", "much", "become", "due", "lot", "less", "eat", "consumption"))
@@ -76,15 +99,7 @@ cloud_freq <- head(comb_cloud$freqTable, 10)
 apa_table(cloud_freq, caption = "Most frequent words in text", escape = F, row.names = F)
 ```
 
-The mean interest for participants in the dynamic norm condition was *M* = `r papaja::printnum(outcomes_desc[[1,3]])` (*SD* = `r papaja::printnum(outcomes_desc[[1,4]])`), and the mean interest in the static norm condition was *M* = `r papaja::printnum(outcomes_desc[[2,3]])` (*SD* = `r papaja::printnum(outcomes_desc[[2,4]])`). The mean interest in the no norm condition was *M* = `r papaja::printnum(outcomes_desc[[3,3]])` (*SD* = `r papaja::printnum(outcomes_desc[[3,4]])`).
-
-There was no difference in interest in reducing meat consumption between the dynamic norm (*M* = `r papaja::printnum(outcomes_desc[[1,3]])`, *SD* = `r papaja::printnum(outcomes_desc[[1,4]])`) and static norm (*M* = `r papaja::printnum(outcomes_desc[[2,3]])`, *SD* = `r papaja::printnum(outcomes_desc[[2,4]])`) conditions, `r ls_interest$full_result$DYST`, *d* = `r H1.effect$DYST$d`, $B_{\text{HN}(0, 0.69)}$ = `r papaja::printnum(H1.effect$DYST.Bf)`, RR[`r H1.effect$rr$RR$sd[1]`, `r H1.effect$rr$RR$sd[2]`].
-
-Participants in the no-norm control condition showed the least interest in reducing meat consumption (*M* = `r papaja::printnum(outcomes_desc[[3,3]])`, *SD* = `r papaja::printnum(outcomes_desc[[3,4]])`) and did not differ from those in the dynamic-norm condition `r ls_interest$full_result$DYNO`, *d* = `r H1.effect$DYNO$d`, or the static-norm condition `r ls_interest$full_result$STNO`, *d* = `r H1.effect$STNO$d`. There was also no difference between the dynamic-norm condition and a combination of the control and static-norm conditions `r ls_interest$full_result$DYCONT`. 
-
-```{r h1-table, results='markup'}
-apa_table(ls_interest$table, caption = "Meat consumption by condition contrasts", escape = F)
-```
+***
 
 ## Will participants in the dynamic norm condition be more likely (than those in the static norm control) to predict a future decrease in meat consumption in the UK?  {.tabset .tabset-pills} 
 
@@ -96,30 +111,36 @@ kable(future, caption = "Expectations of future meat consumption", digits = 2, c
   add_header_above(c(" " = 2, "Future Norm" = 2, "Preconformity" = 2, "Combined" = 2))
 ```
 
-#### **Measure of perception of change:** "In the next 5 years, I expect meat consumption in the UK to…"
+***
+
+### Measure of perception of change
+
+>"In the next 5 years, I expect meat consumption in the UK to…"
 
 There was no evidence one way or another for an effect of dynamic norm condition on expectations about future meat consumption, `r ls_change$full_result$DYST`, *d* = `r H2change.effect$DYST$d`, $B_{\text{HN}(0, 0.40)}$ = `r papaja::printnum(H2change.effect$DYST.Bf)`, RR[`r H2change.effect$rr$RR$sd[1]`, `r H2change.effect$rr$RR$sd[2]`]
 
 ```{r h2-percept-table}
-kable(ls_change$table, caption = "Perception change contrasts", escape = F) %>%
+kable(ls_change$table, caption = "Perception change contrasts", escape = F, row.names = F) %>%
   kable_styling()
 ```
 
-#### **Measure of preconformity:** "In the foreseeable future, to what extent do you think that many people will make an effort to eat less meat?"
+### Measure of preconformity
+
+>"In the foreseeable future, to what extent do you think that many people will make an effort to eat less meat?"
 
 There was no evidence one way or the other for there being a difference in anticipation that many people would make an effort to reduce their meat consumption in the future between the dynamic norm (*M* = `r papaja::printnum(future[[1,5]])`, *SD* = `r papaja::printnum(future[[1,6]])`) and static norm (*M* = `r papaja::printnum(future[[2,5]])`, *SD* = `r papaja::printnum(future[[2,6]])`) conditions, `r ls_preconformity$full_result$DYST`, *d* = `r H2preconformity.effect$DYST$d`, $B_{\text{HN}(0, 0.40)}$ = `r papaja::printnum(H2preconformity.effect$DYST.Bf)`, RR[`r H2preconformity.effect$rr$RR$sd[1]`, `r H2preconformity.effect$rr$RR$sd[2]`].
 
 ```{r h2-preconformity-table}
-kable(ls_preconformity$table, caption = "Preconformity contrasts", escape = F) %>%
+kable(ls_preconformity$table, caption = "Preconformity contrasts", escape = F, row.names = F) %>%
   kable_styling()
 ```
 
-#### **Combined**
+### Combined
 
 There was no evidence one way or the other for there being a difference in anticipation that many people would make an effort to reduce their meat consumption in the future between the dynamic norm (*M* = `r papaja::printnum(future[[1,7]])`, *SD* = `r papaja::printnum(future[[1,8]])`) and static norm (*M* = `r papaja::printnum(future[[2,7]])`, *SD* = `r papaja::printnum(future[[2,8]])`) conditions, `r ls_comb_future$full_result$DYST`, *d* = `r H2comb_future.effect$DYST$d`, $B_{\text{HN}(0, 0.40)}$ = `r papaja::printnum(H2comb_future.effect$DYST.Bf)`, RR[`r H2comb_future.effect$rr$RR$sd[1]`, `r H2comb_future.effect$rr$RR$sd[2]`].
 
 ```{r h2-combined-table}
-kable(ls_comb_future$table, caption = "Combined contrasts", escape = F) %>%
+kable(ls_comb_future$table, caption = "Combined contrasts", escape = F, row.names = F) %>%
   kable_styling()
 ```
 
@@ -133,6 +154,8 @@ The SESOI for percentage difference is ± 5%. The SESOI for mean difference on t
 TOSTtwo.sci(m1 = secondary[[1,4]], m2 = secondary[[2,4]], sd1 = secondary[[1,6]], sd2 = secondary[[2,6]], n1 = secondary[[1,2]], n2 = secondary[[2,2]], low_eqbound = -5, high_eqbound = 5, plot = F)
 ```
 
+***
+
 ## Will there be a difference in how meat consumption is construed across the dynamic and static norm conditions? 
 
 The SESOI for difference in number of meals is ± 2 meals.
@@ -141,6 +164,7 @@ The SESOI for difference in number of meals is ± 2 meals.
 TOSTtwo.sci(m1 = secondary[[1,7]], m2 = secondary[[2,7]], sd1 = secondary[[1,8]], sd2 = secondary[[2,8]], n1 = secondary[[1,2]], n2 = secondary[[2,2]], low_eqbound = -5, high_eqbound = 5, plot = F)
 ```
 
+***
 
 # Exploratory analyses
 
@@ -179,6 +203,9 @@ h3.table %>%
   landscape()
 ```
 
+
+***
+
 ## Does age interact with norm condition to influence dependent variables? {.tabset .tabset-pills}
 
 ### Trace plots
@@ -195,7 +222,7 @@ h4.traceplots[[1]] + ggtitle("Moderate prior")
 h4_intervals.plot
 ```
 
-### Summary table
+### Summary table (groups)
 
 ```{r interaction-table}
 interact.table %>% 
@@ -214,15 +241,21 @@ interact.table %>%
   landscape()
 ```
 
+### Summary table (continuous)
+
 ```{r interactioncont-table}
 continuous_mod.out %>% 
-  kable(caption = "Posterior results for moderation model using age as continuous variable (H4)", row.names = F, escape = F) %>%
+  kable(caption = "Posterior results for moderation model using age as continuous variable (H4)", 
+        col.names = c("Parameter","$M$", "$SD$", "Lower PPI", "Higher PPI", "PSRF", "neff", "Prior"), row.names = F, escape = F) %>%
   kable_styling() %>%
   pack_rows("Interest", 1, 3) %>%
   pack_rows("Attitudes", 4, 6) %>%
   pack_rows("Intentions/Expectations", 7, 9) 
 ```
 
+
+
+***
 
 ## Do demographic factors such as age, gender, and political position predict the primary dependent variables? {.tabset .tabset-pills}
 
@@ -264,6 +297,12 @@ h5.table %>%
 
 
 
+
+***
+
+
+***
+
 # Unregistered analyses {.tabset .tabset-pills}
 
 ## Power test
@@ -273,7 +312,6 @@ Sparkman and Walton (2017) found standardized effects of dynamic norms on intere
 ```{r power-test}
 h1.pwr
 ```
-
 
 ## Moderation of demographic variables
 
@@ -293,9 +331,11 @@ apa_table(demoreg.out$table, caption = "Exploring the effect  moderation of demo
 ## Mediation
 
 ```{r mediation}
-kable(med.table, escape = F, col.names = c("Parameter", "$M$", "$SD$", "Lower PPI", "Upper PPI", "Rhat", "Prior"), caption="Exploring mediating effect of attitude on intentions/expectations") %>%
+kable(med.table, escape = F, col.names = c("Parameter", "$M$", "$SD$", "Lower PPI", "Upper PPI", "PSRF", "Prior"), caption="Exploring mediating effect of attitude on intentions/expectations") %>%
   kable_styling()
 ```
+
+***
 
 # Environment and data
 
@@ -305,7 +345,7 @@ devtools::session_info()
 ```
 
 ## Codebook
-```{r codebook}
+```{r codebook, results='markup'}
 codebook::compact_codebook(clean) 
 ```
 
