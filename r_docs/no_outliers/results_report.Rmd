@@ -24,14 +24,14 @@ output:
 </style>
 
 ```{r setup-chunk, include = FALSE}
-rmd_packages <- c("ggplot2", "papaja", "tidyverse", "kableExtra", "codebook", "ggpubr")
+rmd_packages <- c("ggplot2", "papaja", "tidyverse", "kableExtra", "codebook", "ggpubr", "here")
 lapply(rmd_packages, require, character.only = TRUE)
 source("01_main_analysis.R")
 load(here("figures/exp_plots_out.RData"))
 load(here("data/exp_results_out.RData"))
 load(here("data/unregistered_out.RData"))
 
-knitr::opts_chunk$set(echo=F, warning = F, message = F, results = "asis", fig.path = "figure/")
+knitr::opts_chunk$set(echo=F, warning = F, message = F, results = "asis", fig.path = "figures/")
 options(knitr.kable.NA = '')
 ```
 
@@ -107,7 +107,7 @@ apa_table(cloud_freq, caption = "Most frequent words in text", escape = F, row.n
 
 I modeled H2 using a half-normal distribution with a mean of 0 and SD of *M~diff~* = 0.40. The plausible maximum effect was set at twice the predicted effect of *M~diff~* = 0.80. A Bayes factor was calculated for each test. 
 
-```{r h1-interest-table}
+```{r h2-table}
 kable(future, caption = "Expectations of future meat consumption", digits = 2, col.names = c("Condition", "$n$", rep(c("$M$", "$SD$"), 3))) %>%
   kable_styling() %>%
   add_header_above(c(" " = 2, "Future Norm" = 2, "Preconformity" = 2, "Combined" = 2))
@@ -122,7 +122,7 @@ kable(future, caption = "Expectations of future meat consumption", digits = 2, c
 There was no evidence one way or another for an effect of dynamic norm condition on expectations about future meat consumption, `r ls_change$full_result$DYST`, *d* = `r H2change.effect$DYST$d`, $B_{\text{HN}(0, 0.40)}$ = `r papaja::printnum(H2change.effect$DYST.Bf)`, RR[`r H2change.effect$rr$RR$sd[1]`, `r H2change.effect$rr$RR$sd[2]`]
 
 ```{r h2-percept-table}
-kable(ls_change$table, caption = "Perception change contrasts", escape = F, row.names = F) %>%
+kable(ls_change$table, caption = "Contrasts between conditions in expectations about future meat consumption", escape = F, row.names = F) %>%
   kable_styling()
 ```
 
@@ -133,7 +133,7 @@ kable(ls_change$table, caption = "Perception change contrasts", escape = F, row.
 There was no evidence one way or the other for there being a difference in anticipation that many people would make an effort to reduce their meat consumption in the future between the dynamic norm (*M* = `r papaja::printnum(future[[1,5]])`, *SD* = `r papaja::printnum(future[[1,6]])`) and static norm (*M* = `r papaja::printnum(future[[2,5]])`, *SD* = `r papaja::printnum(future[[2,6]])`) conditions, `r ls_preconformity$full_result$DYST`, *d* = `r H2preconformity.effect$DYST$d`, $B_{\text{HN}(0, 0.40)}$ = `r papaja::printnum(H2preconformity.effect$DYST.Bf)`, RR[`r H2preconformity.effect$rr$RR$sd[1]`, `r H2preconformity.effect$rr$RR$sd[2]`].
 
 ```{r h2-preconformity-table}
-kable(ls_preconformity$table, caption = "Preconformity contrasts", escape = F, row.names= F) %>%
+kable(ls_preconformity$table, caption = "Contrasts between conditions in preconformity", escape = F, row.names= F) %>%
   kable_styling()
 ```
 
@@ -176,7 +176,7 @@ TOSTtwo.sci(m1 = secondary[[1,7]], m2 = secondary[[2,7]], sd1 = secondary[[1,8]]
 
 ### Trace plots
 
-```{r h3-trace, fig.show='asis', fig.cap="Traceplots of regression parameters"}
+```{r h3-trace, fig.show='asis', fig.cap="Traceplots of parameters estimated in the simple path model"}
 h3.traceplots[[1]] + ggtitle("Uninformative")
 h3.traceplots[[2]] + ggtitle("Weak prior")
 h3.traceplots[[1]] + ggtitle("Moderate prior")
@@ -213,7 +213,7 @@ h3.table %>%
 
 ### Trace plots
 
-```{r h4-trace, fig.show='asis', fig.cap="Traceplots of regression parameters"}
+```{r h4-trace, fig.show='asis', fig.cap="Traceplots of parameters estimated in the multi-sample analysis"}
 h4.traceplots[[1]] + ggtitle("Uninformative")
 h4.traceplots[[2]] + ggtitle("Weak prior")
 h4.traceplots[[1]] + ggtitle("Moderate prior")
@@ -229,7 +229,7 @@ h4_intervals.plot
 
 ```{r interaction-table}
 interact.table %>% 
-  kable(format = "html", caption = "Posterior results for multi-sample analysis by age (H4)", row.names = F, escape = F) %>%
+  kable(format = "html", caption = "Posterior results for multi-sample analysis by age groups (H4)", row.names = F, escape = F) %>%
   add_header_above(c(" " = 1, "Model 1: Uninformative priors$^a$" = 5, "Model 2: Informative priors$^b$" = 6, "Model 3: Informative priors$^c$" = 6)) %>%  
   kable_styling() %>%
   pack_rows("Young adults", 1, 3) %>%
@@ -247,6 +247,8 @@ interact.table %>%
 ### Summary table (continuous)
 
 ```{r interactioncont-table}
+continuous_mod.out[,1] <- rep(c("Condition", "Age", "Condition $\\times$ Age"), 3)
+         
 continuous_mod.out %>% 
   kable(caption = "Posterior results for moderation model using age as continuous variable (H4)", 
         col.names = c("Parameter","$M$", "$SD$", "Lower PPI", "Higher PPI", "PSRF", "neff", "Prior"), row.names = F, escape = F) %>%
@@ -262,7 +264,7 @@ continuous_mod.out %>%
 
 ### Trace plots
 
-```{r h5-trace, fig.show='asis', fig.cap="Traceplots for estimated regression parameters"}
+```{r h5-trace, fig.show='asis', fig.cap="Traceplots of parameters estimated in the full path model"}
 h5.traceplots[[1]] + ggtitle("Uninformative")
 h5.traceplots[[2]] + ggtitle("Weak prior")
 h5.traceplots[[1]] + ggtitle("Moderate prior")
@@ -312,15 +314,21 @@ h1.pwr
 ## Moderation of demographic variables
 
 ```{r moderation-attit}
-apa_table(attitude_mod.out$table, caption = "Exploring the effect  moderation of demographic variables on attitudes", escape = F)
+attitude_mod.out$table <- attitude_mod.out$table %>%
+  mutate(predictor = c("Intercept", "Condition", "Gender", "Political position", "Condition $\\times$ Gender", "Condition $\\times$ Political position"),
+         rownames = NULL)
+apa_table(attitude_mod.out$table, caption = "Exploring moderation of demographic variables on attitude", escape = F)
 ```
 
-```{r moderation-intent}
-apa_table(intent_mod.out$table, caption = "Exploring the effect  moderation of demographic variables on intention", escape = F)
+```{r moderation-intentexp}
+intent_mod.out$table <- intent_mod.out$table %>%
+  mutate(predictor = c("Intercept", "Condition", "Gender", "Political position", "Condition $\\times$ Gender", "Condition $\\times$ Political position"),
+         rownames = NULL)
+apa_table(intent_mod.out$table, caption = "Exploring moderation of demographic variables on intentions/expectations", escape = F)
 ```
 
-```{r h1-fullreg, results='markup'}
-apa_table(demoreg.out$table, caption = "Exploring the effect  moderation of demographic variables on interest", escape = F)
+```{r moderation-interest}
+apa_table(demoreg.out$table, caption = "Exploring moderation of demographic variables on interest", escape = F)
 ```
 
 
@@ -342,6 +350,6 @@ devtools::session_info()
 
 ## Codebook
 ```{r codebook, results='markup'}
-codebook::compact_codebook(no_out) 
+codebook::compact_codebook(no_out)
 ```
 
